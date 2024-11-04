@@ -29,7 +29,7 @@ class LeisenReimer:
         """
         dt = T / steps
         discount = exp(-r * dt)
-        u, d, p = LeisenReimer._calculate_ud_p(r, sigma, dt, steps, option_type)
+        u, d, p = LeisenReimer._calculate_ud_p(r, sigma, q, dt, steps, option_type)
 
         prices = [S * (u ** j) * (d ** (steps - j)) for j in range(steps + 1)]
         values = [max(price - K, 0) if option_type == 'calls' else max(K - price, 0) for price in prices]
@@ -216,17 +216,19 @@ class LeisenReimer:
 
     @staticmethod
     @njit
-    def _calculate_ud_p(r, sigma, dt, steps, option_type):
+    def _calculate_ud_p(r, sigma, q, dt, steps, option_type):
         """
-        Private method to calculate the up (u), down (d), and probability (p) factors for the Leisen-Reimer model.
-        
+        Private method to calculate the up (u), down (d), and probability (p) factors for the Leisen-Reimer model,
+        accounting for the dividend yield.
+
         Parameters:
             r (float): Risk-free interest rate.
             sigma (float): Implied volatility.
+            q (float): Continuous dividend yield.
             dt (float): Time increment per step.
             steps (int): Number of steps in the binomial tree.
             option_type (str): 'calls' or 'puts'.
-        
+
         Returns:
             Tuple[float, float, float]: (u, d, p) - up factor, down factor, and probability.
         """
@@ -235,8 +237,8 @@ class LeisenReimer:
         m = (steps + 1) / 2.0
 
         if option_type == 'calls':
-            p = normal_cdf((log(m) + (r - 0.5 * sigma ** 2) * dt) / (sigma * sqrt(dt)))
+            p = normal_cdf((log(m) + (r - q - 0.5 * sigma ** 2) * dt) / (sigma * sqrt(dt)))
         else:
-            p = 1 - normal_cdf((log(m) + (r - 0.5 * sigma ** 2) * dt) / (sigma * sqrt(dt)))
+            p = 1 - normal_cdf((log(m) + (r - q - 0.5 * sigma ** 2) * dt) / (sigma * sqrt(dt)))
 
         return u, d, p
