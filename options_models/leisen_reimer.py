@@ -100,7 +100,7 @@ class LeisenReimer:
         price_up = leisen_reimer_price_helper(sigma, S * u, K, T, r, q, option_type, steps)
         price_down = leisen_reimer_price_helper(sigma, S * d, K, T, r, q, option_type, steps)
         
-        return ((price_up - price_down) / (S * (u - d))) / 2
+        return (price_up - price_down) / (2 * S * (u - d))
 
     @staticmethod
     @njit
