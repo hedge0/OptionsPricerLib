@@ -71,7 +71,7 @@ class CoxRossRubinstein:
     
     @staticmethod
     @njit
-    def calculate_delta(sigma, S, K, T, r, q=0.0, steps=100):
+    def calculate_delta(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the delta of an option using the CRR binomial model.
         
@@ -82,6 +82,7 @@ class CoxRossRubinstein:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
         
         Returns:
@@ -91,14 +92,14 @@ class CoxRossRubinstein:
         u = exp(sigma * sqrt(dt))
         d = 1 / u
 
-        price_up = crr_price_helper(sigma, S * u, K, T, r, q, option_type='calls', steps=steps)
-        price_down = crr_price_helper(sigma, S * d, K, T, r, q, option_type='calls', steps=steps)
+        price_up = crr_price_helper(sigma, S * u, K, T, r, q, option_type, steps=steps)
+        price_down = crr_price_helper(sigma, S * d, K, T, r, q, option_type, steps=steps)
 
         return (price_up - price_down) / (S * (u - d))
 
     @staticmethod
     @njit
-    def calculate_gamma(sigma, S, K, T, r, q=0.0, steps=100):
+    def calculate_gamma(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the gamma of an option using the CRR binomial model.
         
@@ -109,6 +110,7 @@ class CoxRossRubinstein:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
         
         Returns:
@@ -118,15 +120,15 @@ class CoxRossRubinstein:
         u = exp(sigma * sqrt(dt))
         d = 1 / u
 
-        price_up = crr_price_helper(sigma, S * u, K, T, r, q, option_type='calls', steps=steps)
-        price_down = crr_price_helper(sigma, S * d, K, T, r, q, option_type='calls', steps=steps)
-        price = crr_price_helper(sigma, S, K, T, r, q, option_type='calls', steps=steps)
+        price_up = crr_price_helper(sigma, S * u, K, T, r, q, option_type, steps=steps)
+        price_down = crr_price_helper(sigma, S * d, K, T, r, q, option_type, steps=steps)
+        price = crr_price_helper(sigma, S, K, T, r, q, option_type, steps=steps)
 
         return (price_up - 2 * price + price_down) / (S ** 2 * (u - d) ** 2)
 
     @staticmethod
     @njit
-    def calculate_vega(sigma, S, K, T, r, q=0.0, steps=100):
+    def calculate_vega(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the vega of an option using the CRR binomial model.
         
@@ -137,14 +139,15 @@ class CoxRossRubinstein:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
         
         Returns:
             float: The vega of the option.
         """
         epsilon = 1e-5
-        price_up = crr_price_helper(sigma + epsilon, S, K, T, r, q, option_type='calls', steps=steps)
-        price_down = crr_price_helper(sigma - epsilon, S, K, T, r, q, option_type='calls', steps=steps)
+        price_up = crr_price_helper(sigma + epsilon, S, K, T, r, q, option_type, steps=steps)
+        price_down = crr_price_helper(sigma - epsilon, S, K, T, r, q, option_type, steps=steps)
         
         return (price_up - price_down) / (2 * epsilon)
 

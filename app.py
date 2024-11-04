@@ -15,37 +15,47 @@ def main():
 
     # Loop through both call and put option types
     for option_type in ['calls', 'puts']:
-        print(f"\nCalculating prices and implied volatilities for {option_type}:")
+        print(f"\nCalculating prices, implied volatilities, and deltas for {option_type}:")
 
-        # Calculate option price using Barone-Adesi Whaley model
+        # Calculate option price and delta using Barone-Adesi Whaley model
         baw_price = BaroneAdesiWhaley.price(sigma, S, K, T, r, q, option_type)
         print(f"The price of the {option_type} option using Barone-Adesi Whaley model is: {baw_price:.2f}")
         baw_iv = BaroneAdesiWhaley.calculate_implied_volatility(baw_price, S, K, T, r, q, option_type)
         print(f"The implied volatility using Barone-Adesi Whaley model is: {baw_iv:.2%}")
+        baw_delta = BaroneAdesiWhaley.calculate_delta(sigma, S, K, T, r, q, option_type)
+        print(f"The delta using Barone-Adesi Whaley model is: {baw_delta:.4f}")
 
-        # Calculate option price using Black-Scholes model
+        # Calculate option price and delta using Black-Scholes model
         bs_price = BlackScholes.price(sigma, S, K, T, r, q, option_type)
         print(f"The price of the {option_type} option using Black-Scholes model is: {bs_price:.2f}")
         bs_iv = BlackScholes.calculate_implied_volatility(bs_price, S, K, T, r, q, option_type)
         print(f"The implied volatility using Black-Scholes model is: {bs_iv:.2%}")
+        bs_delta = BlackScholes.calculate_delta(sigma, S, K, T, r, q, option_type)
+        print(f"The delta using Black-Scholes model is: {bs_delta:.4f}")
 
-        # Calculate option price using Leisen-Reimer binomial model
+        # Calculate option price and delta using Leisen-Reimer binomial model
         lr_price = LeisenReimer.price(sigma, S, K, T, r, q, option_type, steps=100)
         print(f"The price of the {option_type} option using Leisen-Reimer model is: {lr_price:.2f}")
         lr_iv = LeisenReimer.calculate_implied_volatility(lr_price, S, K, T, r, q, option_type, steps=100)
         print(f"The implied volatility using Leisen-Reimer model is: {lr_iv:.2%}")
+        lr_delta = LeisenReimer.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
+        print(f"The delta using Leisen-Reimer model is: {lr_delta:.4f}")
 
-        # Calculate option price using Jarrow-Rudd binomial model
+        # Calculate option price and delta using Jarrow-Rudd binomial model
         jr_price = JarrowRudd.price(sigma, S, K, T, r, q, option_type, steps=100)
         print(f"The price of the {option_type} option using Jarrow-Rudd model is: {jr_price:.2f}")
         jr_iv = JarrowRudd.calculate_implied_volatility(jr_price, S, K, T, r, q, option_type, steps=100)
         print(f"The implied volatility using Jarrow-Rudd model is: {jr_iv:.2%}")
+        jr_delta = JarrowRudd.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
+        print(f"The delta using Jarrow-Rudd model is: {jr_delta:.4f}")
 
-        # Calculate option price using Cox-Ross-Rubinstein binomial model
+        # Calculate option price and delta using Cox-Ross-Rubinstein binomial model
         crr_price = CoxRossRubinstein.price(sigma, S, K, T, r, q, option_type, steps=100)
         print(f"The price of the {option_type} option using Cox-Ross-Rubinstein model is: {crr_price:.2f}")
         crr_iv = CoxRossRubinstein.calculate_implied_volatility(crr_price, S, K, T, r, q, option_type, steps=100)
         print(f"The implied volatility using Cox-Ross-Rubinstein model is: {crr_iv:.2%}")
+        crr_delta = CoxRossRubinstein.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
+        print(f"The delta using Cox-Ross-Rubinstein model is: {crr_delta:.4f}")
 
 if __name__ == "__main__":
     main()

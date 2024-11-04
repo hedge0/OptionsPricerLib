@@ -112,7 +112,8 @@ class BlackScholes:
             float: The gamma of the option.
         """
         d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
-        return exp(-q * T) * normal_cdf(d1) / (S * sigma * sqrt(T))
+        pdf_d1 = exp(-0.5 * d1 ** 2) / sqrt(2 * 3.141592653589793)
+        return exp(-q * T) * pdf_d1 / (S * sigma * sqrt(T))
 
     @staticmethod
     @njit
@@ -132,7 +133,8 @@ class BlackScholes:
             float: The vega of the option.
         """
         d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
-        return S * exp(-q * T) * sqrt(T) * normal_cdf(d1)
+        pdf_d1 = exp(-0.5 * d1 ** 2) / sqrt(2 * 3.141592653589793)
+        return S * exp(-q * T) * sqrt(T) * pdf_d1
 
     @staticmethod
     @njit
@@ -154,12 +156,19 @@ class BlackScholes:
         """
         d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
         d2 = d1 - sigma * sqrt(T)
+        pdf_d1 = exp(-0.5 * d1 ** 2) / sqrt(2 * 3.141592653589793)
+        
         if option_type == 'calls':
-            theta = (-S * sigma * exp(-q * T) * normal_cdf(d1) / (2 * sqrt(T))) - (r * K * exp(-r * T) * normal_cdf(d2)) + (q * S * exp(-q * T) * normal_cdf(d1))
+            theta = (-S * sigma * exp(-q * T) * pdf_d1 / (2 * sqrt(T))) \
+                    - r * K * exp(-r * T) * normal_cdf(d2) \
+                    + q * S * exp(-q * T) * normal_cdf(d1)
         elif option_type == 'puts':
-            theta = (-S * sigma * exp(-q * T) * normal_cdf(-d1) / (2 * sqrt(T))) + (r * K * exp(-r * T) * normal_cdf(-d2)) - (q * S * exp(-q * T) * normal_cdf(-d1))
+            theta = (-S * sigma * exp(-q * T) * pdf_d1 / (2 * sqrt(T))) \
+                    + r * K * exp(-r * T) * normal_cdf(-d2) \
+                    - q * S * exp(-q * T) * normal_cdf(-d1)
         else:
             raise ValueError("option_type must be 'calls' or 'puts'.")
+        
         return theta
 
     @staticmethod

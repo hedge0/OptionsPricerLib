@@ -92,11 +92,15 @@ class LeisenReimer:
         Returns:
             float: The delta of the option.
         """
-        epsilon = 0.01 * S
-        price_up = leisen_reimer_price_helper(sigma, S + epsilon, K, T, r, q, option_type, steps)
-        price_down = leisen_reimer_price_helper(sigma, S - epsilon, K, T, r, q, option_type, steps)
-
-        return (price_up - price_down) / (2 * epsilon)
+        dt = T / steps
+        dx = sigma * sqrt(dt)
+        u = exp(dx)
+        d = exp(-dx)
+        
+        price_up = leisen_reimer_price_helper(sigma, S * u, K, T, r, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(sigma, S * d, K, T, r, q, option_type, steps)
+        
+        return ((price_up - price_down) / (S * (u - d))) / 2
 
     @staticmethod
     @njit
