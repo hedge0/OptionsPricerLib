@@ -1,4 +1,4 @@
-from math import exp, sqrt
+from math import exp, log, sqrt
 from numba import njit
 
 class JarrowRudd:
@@ -116,15 +116,9 @@ class JarrowRudd:
         Returns:
             float: The gamma of the option.
         """
-        dt = T / steps
-        u = exp((r - q - 0.5 * sigma ** 2) * dt + sigma * sqrt(dt))
-        d = exp((r - q - 0.5 * sigma ** 2) * dt - sigma * sqrt(dt))
-
-        price_up = jarrow_rudd_price_helper(sigma, S * u, K, T, r, q, option_type, steps)
-        price_down = jarrow_rudd_price_helper(sigma, S * d, K, T, r, q, option_type, steps)
-        price = jarrow_rudd_price_helper(sigma, S, K, T, r, q, option_type, steps)
-
-        return (price_up - 2 * price + price_down) / (S ** 2 * (u - d) ** 2)
+        d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
+        pdf_d1 = exp(-0.5 * d1**2) / sqrt(2 * 3.141592653589793)
+        return exp(-q * T) * pdf_d1 / (S * sigma * sqrt(T))
 
     @staticmethod
     @njit

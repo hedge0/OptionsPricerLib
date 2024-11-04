@@ -121,12 +121,9 @@ class LeisenReimer:
         Returns:
             float: The gamma of the option.
         """
-        epsilon = 0.01 * S
-        price_up = leisen_reimer_price_helper(sigma, S + epsilon, K, T, r, q, option_type, steps)
-        price_down = leisen_reimer_price_helper(sigma, S - epsilon, K, T, r, q, option_type, steps)
-        price = leisen_reimer_price_helper(sigma, S, K, T, r, q, option_type, steps)
-
-        return (price_up - 2 * price + price_down) / (epsilon ** 2)
+        d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
+        pdf_d1 = exp(-0.5 * d1**2) / sqrt(2 * 3.141592653589793)
+        return exp(-q * T) * pdf_d1 / (S * sigma * sqrt(T))
 
     @staticmethod
     @njit
