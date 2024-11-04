@@ -26,37 +26,7 @@ class BaroneAdesiWhaley:
         Returns:
             float: The calculated option price.
         """
-        M = 2 * (r - q) / sigma**2
-        n = 2 * (r - q - 0.5 * sigma**2) / sigma**2
-        q2 = (-(n - 1) - sqrt((n - 1)**2 + 4 * M)) / 2
-
-        d1 = (log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
-        d2 = d1 - sigma * sqrt(T)
-
-        if option_type == 'calls':
-            european_price = S * exp(-q * T) * normal_cdf(d1) - K * exp(-r * T) * normal_cdf(d2)
-            if q >= r or q2 < 0:
-                return european_price
-            S_critical = K / (1 - 1 / q2)
-            if S >= S_critical:
-                return S - K
-            else:
-                A2 = (S_critical - K) * (S_critical**-q2)
-                return european_price + A2 * (S / S_critical)**q2
-
-        elif option_type == 'puts':
-            european_price = K * exp(-r * T) * normal_cdf(-d2) - S * exp(-q * T) * normal_cdf(-d1)
-            if q >= r or q2 < 0:
-                return european_price
-            S_critical = K / (1 + 1 / q2)
-            if S <= S_critical:
-                return K - S
-            else:
-                A2 = (K - S_critical) * (S_critical**-q2)
-                return european_price + A2 * (S / S_critical)**q2
-
-        else:
-            raise ValueError("option_type must be 'calls' or 'puts'.")
+        return barone_adesi_whaley_price_helper(S, K, T, r, sigma, q, option_type)
 
     @staticmethod
     @njit
@@ -83,7 +53,7 @@ class BaroneAdesiWhaley:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = BaroneAdesiWhaley.price(S, K, T, r, mid_vol, q, option_type)
+            price = barone_adesi_whaley_price_helper(S, K, T, r, mid_vol, q, option_type)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -217,3 +187,53 @@ class BaroneAdesiWhaley:
             return -K * T * exp(-r * T) * normal_cdf(-d2)
         else:
             raise ValueError("option_type must be 'calls' or 'puts'.")
+
+@njit
+def barone_adesi_whaley_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls'):
+    """
+    Helper function to calculate the price of an American option using the Barone-Adesi Whaley model.
+
+    Parameters:
+        S (float): Current stock price.
+        K (float): Strike price of the option.
+        T (float): Time to expiration in years.
+        r (float): Risk-free interest rate.
+        sigma (float): Implied volatility.
+        q (float, optional): Continuous dividend yield. Defaults to 0.0.
+        option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
+
+    Returns:
+        float: The calculated option price.
+    """
+    M = 2 * (r - q) / sigma**2
+    n = 2 * (r - q - 0.5 * sigma**2) / sigma**2
+    q2 = (-(n - 1) - sqrt((n - 1)**2 + 4 * M)) / 2
+
+    d1 = (log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
+    d2 = d1 - sigma * sqrt(T)
+
+    if option_type == 'calls':
+        european_price = S * exp(-q * T) * normal_cdf(d1) - K * exp(-r * T) * normal_cdf(d2)
+        if q >= r or q2 < 0:
+            return european_price
+        S_critical = K / (1 - 1 / q2)
+        if S >= S_critical:
+            return S - K
+        else:
+            A2 = (S_critical - K) * (S_critical**-q2)
+            return european_price + A2 * (S / S_critical)**q2
+
+    elif option_type == 'puts':
+        european_price = K * exp(-r * T) * normal_cdf(-d2) - S * exp(-q * T) * normal_cdf(-d1)
+        if q >= r or q2 < 0:
+            return european_price
+        S_critical = K / (1 + 1 / q2)
+        if S <= S_critical:
+            return K - S
+        else:
+            A2 = (K - S_critical) * (S_critical**-q2)
+            return european_price + A2 * (S / S_critical)**q2
+
+    else:
+        raise ValueError("option_type must be 'calls' or 'puts'.")
+    

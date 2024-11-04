@@ -26,15 +26,7 @@ class BlackScholes:
         Returns:
             float: The calculated option price.
         """
-        d1 = (log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
-        d2 = d1 - sigma * sqrt(T)
-
-        if option_type == 'calls':
-            return S * exp(-q * T) * normal_cdf(d1) - K * exp(-r * T) * normal_cdf(d2)
-        elif option_type == 'puts':
-            return K * exp(-r * T) * normal_cdf(-d2) - S * exp(-q * T) * normal_cdf(-d1)
-        else:
-            raise ValueError("option_type must be 'calls' or 'puts'.")
+        return black_scholes_price_helper(S, K, T, r, sigma, q, option_type)
 
     @staticmethod
     @njit
@@ -61,7 +53,7 @@ class BlackScholes:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = BlackScholes.price(S, K, T, r, mid_vol, q, option_type)
+            price = black_scholes_price_helper(S, K, T, r, mid_vol, q, option_type)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -195,3 +187,31 @@ class BlackScholes:
             return -K * T * exp(-r * T) * normal_cdf(-d2)
         else:
             raise ValueError("option_type must be 'calls' or 'puts'.")
+
+@njit
+def black_scholes_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls'):
+    """
+    Helper function to calculate the price of a European option using the Black-Scholes model.
+
+    Parameters:
+        S (float): Current stock price.
+        K (float): Strike price of the option.
+        T (float): Time to expiration in years.
+        r (float): Risk-free interest rate.
+        sigma (float): Implied volatility.
+        q (float, optional): Continuous dividend yield. Defaults to 0.0.
+        option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
+
+    Returns:
+        float: The calculated option price.
+    """
+    d1 = (log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
+    d2 = d1 - sigma * sqrt(T)
+
+    if option_type == 'calls':
+        return S * exp(-q * T) * normal_cdf(d1) - K * exp(-r * T) * normal_cdf(d2)
+    elif option_type == 'puts':
+        return K * exp(-r * T) * normal_cdf(-d2) - S * exp(-q * T) * normal_cdf(-d1)
+    else:
+        raise ValueError("option_type must be 'calls' or 'puts'.")
+    

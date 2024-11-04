@@ -26,23 +26,7 @@ class JarrowRudd:
         Returns:
             float: The calculated option price.
         """
-        dt = T / steps
-        discount = exp(-r * dt)
-        u = exp((r - q - 0.5 * sigma ** 2) * dt + sigma * sqrt(dt))
-        d = exp((r - q - 0.5 * sigma ** 2) * dt - sigma * sqrt(dt))
-        p = 0.5
-
-        prices = [S * (u ** j) * (d ** (steps - j)) for j in range(steps + 1)]
-        values = [max(price - K, 0) if option_type == 'calls' else max(K - price, 0) for price in prices]
-
-        for i in range(steps - 1, -1, -1):
-            for j in range(i + 1):
-                price = S * (u ** j) * (d ** (i - j))
-                exercise_value = max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
-                continuation_value = discount * (p * values[j + 1] + (1 - p) * values[j])
-                values[j] = max(exercise_value, continuation_value)
-
-        return values[0]
+        return jarrow_rudd_price_helper(S, K, T, r, sigma, q, option_type, steps)
 
     @staticmethod
     @njit
@@ -70,7 +54,7 @@ class JarrowRudd:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = JarrowRudd.price(S, K, T, r, mid_vol, q, option_type, steps)
+            price = jarrow_rudd_price_helper(S, K, T, r, mid_vol, q, option_type, steps)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -108,8 +92,8 @@ class JarrowRudd:
         u = exp((r - q - 0.5 * sigma ** 2) * dt + sigma * sqrt(dt))
         d = exp((r - q - 0.5 * sigma ** 2) * dt - sigma * sqrt(dt))
 
-        price_up = JarrowRudd.price(S * u, K, T, r, sigma, q, option_type, steps)
-        price_down = JarrowRudd.price(S * d, K, T, r, sigma, q, option_type, steps)
+        price_up = jarrow_rudd_price_helper(S * u, K, T, r, sigma, q, option_type, steps)
+        price_down = jarrow_rudd_price_helper(S * d, K, T, r, sigma, q, option_type, steps)
 
         return (price_up - price_down) / (S * (u - d))
 
@@ -136,9 +120,9 @@ class JarrowRudd:
         u = exp((r - q - 0.5 * sigma ** 2) * dt + sigma * sqrt(dt))
         d = exp((r - q - 0.5 * sigma ** 2) * dt - sigma * sqrt(dt))
 
-        price_up = JarrowRudd.price(S * u, K, T, r, sigma, q, option_type, steps)
-        price_down = JarrowRudd.price(S * d, K, T, r, sigma, q, option_type, steps)
-        price = JarrowRudd.price(S, K, T, r, sigma, q, option_type, steps)
+        price_up = jarrow_rudd_price_helper(S * u, K, T, r, sigma, q, option_type, steps)
+        price_down = jarrow_rudd_price_helper(S * d, K, T, r, sigma, q, option_type, steps)
+        price = jarrow_rudd_price_helper(S, K, T, r, sigma, q, option_type, steps)
 
         return (price_up - 2 * price + price_down) / (S ** 2 * (u - d) ** 2)
 
@@ -162,8 +146,8 @@ class JarrowRudd:
             float: The vega of the option.
         """
         epsilon = 1e-5
-        price_up = JarrowRudd.price(S, K, T, r, sigma + epsilon, q, option_type, steps)
-        price_down = JarrowRudd.price(S, K, T, r, sigma - epsilon, q, option_type, steps)
+        price_up = jarrow_rudd_price_helper(S, K, T, r, sigma + epsilon, q, option_type, steps)
+        price_down = jarrow_rudd_price_helper(S, K, T, r, sigma - epsilon, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
 
@@ -187,8 +171,8 @@ class JarrowRudd:
             float: The theta of the option.
         """
         epsilon = 1e-5
-        price = JarrowRudd.price(S, K, T, r, sigma, q, option_type, steps)
-        price_epsilon = JarrowRudd.price(S, K, T - epsilon, r, sigma, q, option_type, steps)
+        price = jarrow_rudd_price_helper(S, K, T, r, sigma, q, option_type, steps)
+        price_epsilon = jarrow_rudd_price_helper(S, K, T - epsilon, r, sigma, q, option_type, steps)
 
         return (price_epsilon - price) / epsilon
 
@@ -212,7 +196,43 @@ class JarrowRudd:
             float: The rho of the option.
         """
         epsilon = 1e-5
-        price_up = JarrowRudd.price(S, K, T, r + epsilon, sigma, q, option_type, steps)
-        price_down = JarrowRudd.price(S, K, T, r - epsilon, sigma, q, option_type, steps)
+        price_up = jarrow_rudd_price_helper(S, K, T, r + epsilon, sigma, q, option_type, steps)
+        price_down = jarrow_rudd_price_helper(S, K, T, r - epsilon, sigma, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
+
+@njit
+def jarrow_rudd_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    """
+    Helper function to calculate the price of an American option using the Jarrow-Rudd binomial model.
+    
+    Parameters:
+        S (float): Current stock price.
+        K (float): Strike price of the option.
+        T (float): Time to expiration in years.
+        r (float): Risk-free interest rate.
+        sigma (float): Implied volatility.
+        q (float, optional): Continuous dividend yield. Defaults to 0.0.
+        option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
+        steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
+    
+    Returns:
+        float: The calculated option price.
+    """
+    dt = T / steps
+    discount = exp(-r * dt)
+    u = exp((r - q - 0.5 * sigma ** 2) * dt + sigma * sqrt(dt))
+    d = exp((r - q - 0.5 * sigma ** 2) * dt - sigma * sqrt(dt))
+    p = 0.5
+
+    prices = [S * (u ** j) * (d ** (steps - j)) for j in range(steps + 1)]
+    values = [max(price - K, 0) if option_type == 'calls' else max(K - price, 0) for price in prices]
+
+    for i in range(steps - 1, -1, -1):
+        for j in range(i + 1):
+            price = S * (u ** j) * (d ** (i - j))
+            exercise_value = max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
+            continuation_value = discount * (p * values[j + 1] + (1 - p) * values[j])
+            values[j] = max(exercise_value, continuation_value)
+
+    return values[0]

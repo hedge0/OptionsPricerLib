@@ -1,6 +1,6 @@
-from math import exp
+from math import exp, log, sqrt
 from numba import njit
-from options_models.utils import leisen_reimer_ud_p
+from options_models.utils import peizer_pratt_inverse
 
 class LeisenReimer:
     """
@@ -27,26 +27,7 @@ class LeisenReimer:
         Returns:
             float: The calculated option price.
         """
-        dt = T / steps
-        discount = exp(-r * dt)
-        u, d, p = leisen_reimer_ud_p(S, K, T, r, sigma, q, steps, option_type)
-
-        prices = [S * (u ** (steps - j)) * (d ** j) for j in range(steps + 1)]
-        values = [
-            max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
-            for price in prices
-        ]
-
-        for i in range(steps - 1, -1, -1):
-            for j in range(i + 1):
-                values[j] = discount * (p * values[j] + (1 - p) * values[j + 1])
-                price = S * (u ** (i - j)) * (d ** j)
-                exercise_value = (
-                    max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
-                )
-                values[j] = max(values[j], exercise_value)
-
-        return values[0]
+        return leisen_reimer_price_helper(S, K, T, r, sigma, q, option_type, steps)
 
     @staticmethod
     @njit
@@ -77,7 +58,7 @@ class LeisenReimer:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = LeisenReimer.price(S, K, T, r, mid_vol, q, option_type, steps)
+            price = leisen_reimer_price_helper(S, K, T, r, mid_vol, q, option_type, steps)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -112,8 +93,8 @@ class LeisenReimer:
             float: The delta of the option.
         """
         epsilon = 0.01 * S
-        price_up = LeisenReimer.price(S + epsilon, K, T, r, sigma, q, option_type, steps)
-        price_down = LeisenReimer.price(S - epsilon, K, T, r, sigma, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(S + epsilon, K, T, r, sigma, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(S - epsilon, K, T, r, sigma, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
 
@@ -137,9 +118,9 @@ class LeisenReimer:
             float: The gamma of the option.
         """
         epsilon = 0.01 * S
-        price_up = LeisenReimer.price(S + epsilon, K, T, r, sigma, q, option_type, steps)
-        price_down = LeisenReimer.price(S - epsilon, K, T, r, sigma, q, option_type, steps)
-        price = LeisenReimer.price(S, K, T, r, sigma, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(S + epsilon, K, T, r, sigma, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(S - epsilon, K, T, r, sigma, q, option_type, steps)
+        price = leisen_reimer_price_helper(S, K, T, r, sigma, q, option_type, steps)
 
         return (price_up - 2 * price + price_down) / (epsilon ** 2)
 
@@ -163,8 +144,8 @@ class LeisenReimer:
             float: The vega of the option.
         """
         epsilon = 1e-4
-        price_up = LeisenReimer.price(S, K, T, r, sigma + epsilon, q, option_type, steps)
-        price_down = LeisenReimer.price(S, K, T, r, sigma - epsilon, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(S, K, T, r, sigma + epsilon, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(S, K, T, r, sigma - epsilon, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
 
@@ -188,8 +169,8 @@ class LeisenReimer:
             float: The theta of the option.
         """
         epsilon = 1e-5
-        price = LeisenReimer.price(S, K, T, r, sigma, q, option_type, steps)
-        price_epsilon = LeisenReimer.price(S, K, T - epsilon, r, sigma, q, option_type, steps)
+        price = leisen_reimer_price_helper(S, K, T, r, sigma, q, option_type, steps)
+        price_epsilon = leisen_reimer_price_helper(S, K, T - epsilon, r, sigma, q, option_type, steps)
 
         return (price_epsilon - price) / epsilon
 
@@ -213,7 +194,80 @@ class LeisenReimer:
             float: The rho of the option.
         """
         epsilon = 1e-4
-        price_up = LeisenReimer.price(S, K, T, r + epsilon, sigma, q, option_type, steps)
-        price_down = LeisenReimer.price(S, K, T, r - epsilon, sigma, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(S, K, T, r + epsilon, sigma, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(S, K, T, r - epsilon, sigma, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
+
+@njit
+def leisen_reimer_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    """
+    Helper function to calculate the price of an American option using the Leisen-Reimer binomial model.
+    
+    Parameters:
+        S (float): Current stock price.
+        K (float): Strike price of the option.
+        T (float): Time to expiration in years.
+        r (float): Risk-free interest rate.
+        sigma (float): Implied volatility.
+        q (float, optional): Continuous dividend yield. Defaults to 0.0.
+        option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
+        steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
+    
+    Returns:
+        float: The calculated option price.
+    """
+    dt = T / steps
+    discount = exp(-r * dt)
+    u, d, p = leisen_reimer_ud_p(S, K, T, r, sigma, q, steps, option_type)
+
+    prices = [S * (u ** (steps - j)) * (d ** j) for j in range(steps + 1)]
+    values = [
+        max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
+        for price in prices
+    ]
+
+    for i in range(steps - 1, -1, -1):
+        for j in range(i + 1):
+            values[j] = discount * (p * values[j] + (1 - p) * values[j + 1])
+            price = S * (u ** (i - j)) * (d ** j)
+            exercise_value = (
+                max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
+            )
+            values[j] = max(values[j], exercise_value)
+
+    return values[0]
+
+@njit
+def leisen_reimer_ud_p(S, K, T, r, sigma, q, steps, option_type):
+    """
+    Calculate the up (u), down (d), and probability (p) factors for the Leisen-Reimer model.
+    
+    Parameters:
+        S (float): Current stock price.
+        K (float): Strike price of the option.
+        T (float): Time to expiration in years.
+        r (float): Risk-free interest rate.
+        sigma (float): Implied volatility.
+        q (float): Continuous dividend yield.
+        steps (int): Number of steps in the binomial tree.
+        option_type (str): 'calls' or 'puts'.
+
+    Returns:
+        Tuple[float, float, float]: (u, d, p) - up factor, down factor, and probability.
+    """
+    dt = T / steps
+    dx = sigma * sqrt(dt)
+    
+    d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
+    d2 = d1 - sigma * sqrt(T)
+
+    if option_type == 'calls':
+        p = peizer_pratt_inverse(steps, d2)
+    else:
+        p = 1 - peizer_pratt_inverse(steps, -d2)
+    
+    u = exp(dx)
+    d = exp(-dx)
+    
+    return u, d, p

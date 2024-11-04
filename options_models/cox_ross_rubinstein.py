@@ -26,23 +26,7 @@ class CoxRossRubinstein:
         Returns:
             float: The calculated option price.
         """
-        dt = T / steps
-        discount = exp(-r * dt)
-        u = exp(sigma * sqrt(dt))
-        d = 1 / u
-        p = (exp((r - q) * dt) - d) / (u - d)
-
-        prices = [S * (u ** j) * (d ** (steps - j)) for j in range(steps + 1)]
-        values = [max(price - K, 0) if option_type == 'calls' else max(K - price, 0) for price in prices]
-
-        for i in range(steps - 1, -1, -1):
-            for j in range(i + 1):
-                price = S * (u ** j) * (d ** (i - j))
-                exercise_value = max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
-                continuation_value = discount * (p * values[j + 1] + (1 - p) * values[j])
-                values[j] = max(exercise_value, continuation_value)
-
-        return values[0]
+        return crr_price_helper(S, K, T, r, sigma, q, option_type, steps)
 
     @staticmethod
     @njit
@@ -70,7 +54,7 @@ class CoxRossRubinstein:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = CoxRossRubinstein.price(S, K, T, r, mid_vol, q, option_type, steps)
+            price = crr_price_helper(S, K, T, r, mid_vol, q, option_type, steps)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -107,8 +91,8 @@ class CoxRossRubinstein:
         u = exp(sigma * sqrt(dt))
         d = 1 / u
 
-        price_up = CoxRossRubinstein.price(S * u, K, T, r, sigma, q, option_type='calls', steps=steps)
-        price_down = CoxRossRubinstein.price(S * d, K, T, r, sigma, q, option_type='calls', steps=steps)
+        price_up = crr_price_helper(S * u, K, T, r, sigma, q, option_type='calls', steps=steps)
+        price_down = crr_price_helper(S * d, K, T, r, sigma, q, option_type='calls', steps=steps)
 
         return (price_up - price_down) / (S * (u - d))
 
@@ -134,9 +118,9 @@ class CoxRossRubinstein:
         u = exp(sigma * sqrt(dt))
         d = 1 / u
 
-        price_up = CoxRossRubinstein.price(S * u, K, T, r, sigma, q, option_type='calls', steps=steps)
-        price_down = CoxRossRubinstein.price(S * d, K, T, r, sigma, q, option_type='calls', steps=steps)
-        price = CoxRossRubinstein.price(S, K, T, r, sigma, q, option_type='calls', steps=steps)
+        price_up = crr_price_helper(S * u, K, T, r, sigma, q, option_type='calls', steps=steps)
+        price_down = crr_price_helper(S * d, K, T, r, sigma, q, option_type='calls', steps=steps)
+        price = crr_price_helper(S, K, T, r, sigma, q, option_type='calls', steps=steps)
 
         return (price_up - 2 * price + price_down) / (S ** 2 * (u - d) ** 2)
 
@@ -159,8 +143,8 @@ class CoxRossRubinstein:
             float: The vega of the option.
         """
         epsilon = 1e-5
-        price_up = CoxRossRubinstein.price(S, K, T, r, sigma + epsilon, q, option_type='calls', steps=steps)
-        price_down = CoxRossRubinstein.price(S, K, T, r, sigma - epsilon, q, option_type='calls', steps=steps)
+        price_up = crr_price_helper(S, K, T, r, sigma + epsilon, q, option_type='calls', steps=steps)
+        price_down = crr_price_helper(S, K, T, r, sigma - epsilon, q, option_type='calls', steps=steps)
         
         return (price_up - price_down) / (2 * epsilon)
 
@@ -184,8 +168,8 @@ class CoxRossRubinstein:
             float: The theta of the option.
         """
         epsilon = 1e-5
-        price = CoxRossRubinstein.price(S, K, T, r, sigma, q, option_type, steps)
-        price_epsilon = CoxRossRubinstein.price(S, K, T - epsilon, r, sigma, q, option_type, steps)
+        price = crr_price_helper(S, K, T, r, sigma, q, option_type, steps)
+        price_epsilon = crr_price_helper(S, K, T - epsilon, r, sigma, q, option_type, steps)
         
         return (price_epsilon - price) / epsilon
 
@@ -209,7 +193,43 @@ class CoxRossRubinstein:
             float: The rho of the option.
         """
         epsilon = 1e-5
-        price_up = CoxRossRubinstein.price(S, K, T, r + epsilon, sigma, q, option_type, steps)
-        price_down = CoxRossRubinstein.price(S, K, T, r - epsilon, sigma, q, option_type, steps)
+        price_up = crr_price_helper(S, K, T, r + epsilon, sigma, q, option_type, steps)
+        price_down = crr_price_helper(S, K, T, r - epsilon, sigma, q, option_type, steps)
         
         return (price_up - price_down) / (2 * epsilon)
+    
+@njit
+def crr_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    """
+    Helper function to calculate the price of an American option using the Cox-Ross-Rubinstein binomial model.
+    
+    Parameters:
+        S (float): Current stock price.
+        K (float): Strike price of the option.
+        T (float): Time to expiration in years.
+        r (float): Risk-free interest rate.
+        sigma (float): Implied volatility.
+        q (float, optional): Continuous dividend yield. Defaults to 0.0.
+        option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
+        steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
+    
+    Returns:
+        float: The calculated option price.
+    """
+    dt = T / steps
+    discount = exp(-r * dt)
+    u = exp(sigma * sqrt(dt))
+    d = 1 / u
+    p = (exp((r - q) * dt) - d) / (u - d)
+
+    prices = [S * (u ** j) * (d ** (steps - j)) for j in range(steps + 1)]
+    values = [max(price - K, 0) if option_type == 'calls' else max(K - price, 0) for price in prices]
+
+    for i in range(steps - 1, -1, -1):
+        for j in range(i + 1):
+            price = S * (u ** j) * (d ** (i - j))
+            exercise_value = max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
+            continuation_value = discount * (p * values[j + 1] + (1 - p) * values[j])
+            values[j] = max(exercise_value, continuation_value)
+
+    return values[0]
