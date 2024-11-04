@@ -10,27 +10,27 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def price(S, K, T, r, sigma, q=0.0, option_type='calls'):
+    def price(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the price of a European option using the Black-Scholes model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price of the option.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
         
         Returns:
             float: The calculated option price.
         """
-        return black_scholes_price_helper(S, K, T, r, sigma, q, option_type)
+        return black_scholes_price_helper(sigma, S, K, T, r, q, option_type)
 
     @staticmethod
     @njit
-    def calculate_implied_volatility(option_price, S, K, r, T, q=0.0, option_type='calls', max_iterations=100, tolerance=1e-8):
+    def calculate_implied_volatility(option_price, S, K, T, r, q=0.0, option_type='calls', max_iterations=100, tolerance=1e-8):
         """
         Calculate the implied volatility for a given European option price.
 
@@ -38,8 +38,8 @@ class BlackScholes:
             option_price (float): Observed option price (mid-price).
             S (float): Current stock price.
             K (float): Strike price of the option.
-            r (float): Risk-free interest rate.
             T (float): Time to expiration in years.
+            r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             max_iterations (int, optional): Maximum number of iterations. Defaults to 100.
@@ -53,7 +53,7 @@ class BlackScholes:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = black_scholes_price_helper(S, K, T, r, mid_vol, q, option_type)
+            price = black_scholes_price_helper(mid_vol, S, K, T, r, q, option_type)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -70,16 +70,16 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_delta(S, K, T, r, sigma, q=0.0, option_type='calls'):
+    def calculate_delta(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the delta of a European option.
         
         Parameters:
+            sigma (float): Volatility of the underlying asset.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
-            sigma (float): Volatility of the underlying asset.
             q (float, optional): Continuous dividend yield.
             option_type (str, optional): 'calls' or 'puts'.
         
@@ -96,16 +96,16 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_gamma(S, K, T, r, sigma, q=0.0):
+    def calculate_gamma(sigma, S, K, T, r, q=0.0):
         """
         Calculate the gamma of a European option.
         
         Parameters:
+            sigma (float): Volatility of the underlying asset.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
-            sigma (float): Volatility of the underlying asset.
             q (float, optional): Continuous dividend yield.
         
         Returns:
@@ -116,16 +116,16 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_vega(S, K, T, r, sigma, q=0.0):
+    def calculate_vega(sigma, S, K, T, r, q=0.0):
         """
         Calculate the vega of a European option.
         
         Parameters:
+            sigma (float): Volatility of the underlying asset.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
-            sigma (float): Volatility of the underlying asset.
             q (float, optional): Continuous dividend yield.
         
         Returns:
@@ -136,16 +136,16 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_theta(S, K, T, r, sigma, q=0.0, option_type='calls'):
+    def calculate_theta(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the theta of a European option.
         
         Parameters:
+            sigma (float): Volatility of the underlying asset.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
-            sigma (float): Volatility of the underlying asset.
             q (float, optional): Continuous dividend yield.
             option_type (str, optional): 'calls' or 'puts'.
         
@@ -164,16 +164,16 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_rho(S, K, T, r, sigma, q=0.0, option_type='calls'):
+    def calculate_rho(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the rho of a European option.
         
         Parameters:
+            sigma (float): Volatility of the underlying asset.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
-            sigma (float): Volatility of the underlying asset.
             q (float, optional): Continuous dividend yield.
             option_type (str, optional): 'calls' or 'puts'.
         
@@ -189,16 +189,16 @@ class BlackScholes:
             raise ValueError("option_type must be 'calls' or 'puts'.")
 
 @njit
-def black_scholes_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls'):
+def black_scholes_price_helper(sigma, S, K, T, r, q=0.0, option_type='calls'):
     """
     Helper function to calculate the price of a European option using the Black-Scholes model.
 
     Parameters:
+        sigma (float): Implied volatility.
         S (float): Current stock price.
         K (float): Strike price of the option.
         T (float): Time to expiration in years.
         r (float): Risk-free interest rate.
-        sigma (float): Implied volatility.
         q (float, optional): Continuous dividend yield. Defaults to 0.0.
         option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
 
@@ -214,4 +214,3 @@ def black_scholes_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls'):
         return K * exp(-r * T) * normal_cdf(-d2) - S * exp(-q * T) * normal_cdf(-d1)
     else:
         raise ValueError("option_type must be 'calls' or 'puts'.")
-    

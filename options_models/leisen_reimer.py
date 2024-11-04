@@ -10,16 +10,16 @@ class LeisenReimer:
 
     @staticmethod
     @njit
-    def price(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    def price(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the price of an American option using the Leisen-Reimer binomial model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price of the option.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -27,12 +27,12 @@ class LeisenReimer:
         Returns:
             float: The calculated option price.
         """
-        return leisen_reimer_price_helper(S, K, T, r, sigma, q, option_type, steps)
+        return leisen_reimer_price_helper(sigma, S, K, T, r, q, option_type, steps)
 
     @staticmethod
     @njit
     def calculate_implied_volatility(
-        option_price, S, K, r, T, q=0.0, option_type='calls', steps=100,
+        option_price, S, K, T, r, q=0.0, option_type='calls', steps=100,
         max_iterations=100, tolerance=1e-8
     ):
         """
@@ -42,8 +42,8 @@ class LeisenReimer:
             option_price (float): Observed option price (mid-price).
             S (float): Current stock price.
             K (float): Strike price of the option.
-            r (float): Risk-free interest rate.
             T (float): Time to expiration in years.
+            r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -58,7 +58,7 @@ class LeisenReimer:
 
         for _ in range(max_iterations):
             mid_vol = (lower_vol + upper_vol) / 2
-            price = leisen_reimer_price_helper(S, K, T, r, mid_vol, q, option_type, steps)
+            price = leisen_reimer_price_helper(mid_vol, S, K, T, r, q, option_type, steps)
 
             if abs(price - option_price) < tolerance:
                 return mid_vol
@@ -75,16 +75,16 @@ class LeisenReimer:
 
     @staticmethod
     @njit
-    def calculate_delta(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    def calculate_delta(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the delta of an option using the Leisen-Reimer binomial model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -93,23 +93,23 @@ class LeisenReimer:
             float: The delta of the option.
         """
         epsilon = 0.01 * S
-        price_up = leisen_reimer_price_helper(S + epsilon, K, T, r, sigma, q, option_type, steps)
-        price_down = leisen_reimer_price_helper(S - epsilon, K, T, r, sigma, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(sigma, S + epsilon, K, T, r, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(sigma, S - epsilon, K, T, r, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
 
     @staticmethod
     @njit
-    def calculate_gamma(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    def calculate_gamma(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the gamma of an option using the Leisen-Reimer binomial model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -118,24 +118,24 @@ class LeisenReimer:
             float: The gamma of the option.
         """
         epsilon = 0.01 * S
-        price_up = leisen_reimer_price_helper(S + epsilon, K, T, r, sigma, q, option_type, steps)
-        price_down = leisen_reimer_price_helper(S - epsilon, K, T, r, sigma, q, option_type, steps)
-        price = leisen_reimer_price_helper(S, K, T, r, sigma, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(sigma, S + epsilon, K, T, r, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(sigma, S - epsilon, K, T, r, q, option_type, steps)
+        price = leisen_reimer_price_helper(sigma, S, K, T, r, q, option_type, steps)
 
         return (price_up - 2 * price + price_down) / (epsilon ** 2)
 
     @staticmethod
     @njit
-    def calculate_vega(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    def calculate_vega(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the vega of an option using the Leisen-Reimer binomial model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price of the option.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -144,23 +144,23 @@ class LeisenReimer:
             float: The vega of the option.
         """
         epsilon = 1e-4
-        price_up = leisen_reimer_price_helper(S, K, T, r, sigma + epsilon, q, option_type, steps)
-        price_down = leisen_reimer_price_helper(S, K, T, r, sigma - epsilon, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(sigma + epsilon, S, K, T, r, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(sigma - epsilon, S, K, T, r, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
 
     @staticmethod
     @njit
-    def calculate_theta(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    def calculate_theta(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the theta of an option using the Leisen-Reimer binomial model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price of the option.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -169,23 +169,23 @@ class LeisenReimer:
             float: The theta of the option.
         """
         epsilon = 1e-5
-        price = leisen_reimer_price_helper(S, K, T, r, sigma, q, option_type, steps)
-        price_epsilon = leisen_reimer_price_helper(S, K, T - epsilon, r, sigma, q, option_type, steps)
+        price = leisen_reimer_price_helper(sigma, S, K, T, r, q, option_type, steps)
+        price_epsilon = leisen_reimer_price_helper(sigma, S, K, T - epsilon, r, q, option_type, steps)
 
         return (price_epsilon - price) / epsilon
 
     @staticmethod
     @njit
-    def calculate_rho(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+    def calculate_rho(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
         """
         Calculate the rho of an option using the Leisen-Reimer binomial model.
         
         Parameters:
+            sigma (float): Implied volatility.
             S (float): Current stock price.
             K (float): Strike price of the option.
             T (float): Time to expiration in years.
             r (float): Risk-free interest rate.
-            sigma (float): Implied volatility.
             q (float, optional): Continuous dividend yield. Defaults to 0.0.
             option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
             steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -194,22 +194,22 @@ class LeisenReimer:
             float: The rho of the option.
         """
         epsilon = 1e-4
-        price_up = leisen_reimer_price_helper(S, K, T, r + epsilon, sigma, q, option_type, steps)
-        price_down = leisen_reimer_price_helper(S, K, T, r - epsilon, sigma, q, option_type, steps)
+        price_up = leisen_reimer_price_helper(sigma, S, K, T, r + epsilon, q, option_type, steps)
+        price_down = leisen_reimer_price_helper(sigma, S, K, T, r - epsilon, q, option_type, steps)
 
         return (price_up - price_down) / (2 * epsilon)
 
 @njit
-def leisen_reimer_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls', steps=100):
+def leisen_reimer_price_helper(sigma, S, K, T, r, q=0.0, option_type='calls', steps=100):
     """
     Helper function to calculate the price of an American option using the Leisen-Reimer binomial model.
     
     Parameters:
+        sigma (float): Implied volatility.
         S (float): Current stock price.
         K (float): Strike price of the option.
         T (float): Time to expiration in years.
         r (float): Risk-free interest rate.
-        sigma (float): Implied volatility.
         q (float, optional): Continuous dividend yield. Defaults to 0.0.
         option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
         steps (int, optional): Number of steps in the binomial tree. Defaults to 100.
@@ -219,7 +219,7 @@ def leisen_reimer_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls', st
     """
     dt = T / steps
     discount = exp(-r * dt)
-    u, d, p = leisen_reimer_ud_p(S, K, T, r, sigma, q, steps, option_type)
+    u, d, p = leisen_reimer_ud_p(sigma, S, K, T, r, q, steps, option_type)
 
     prices = [S * (u ** (steps - j)) * (d ** j) for j in range(steps + 1)]
     values = [
@@ -239,16 +239,16 @@ def leisen_reimer_price_helper(S, K, T, r, sigma, q=0.0, option_type='calls', st
     return values[0]
 
 @njit
-def leisen_reimer_ud_p(S, K, T, r, sigma, q, steps, option_type):
+def leisen_reimer_ud_p(sigma, S, K, T, r, q, steps, option_type):
     """
     Calculate the up (u), down (d), and probability (p) factors for the Leisen-Reimer model.
     
     Parameters:
+        sigma (float): Implied volatility.
         S (float): Current stock price.
         K (float): Strike price of the option.
         T (float): Time to expiration in years.
         r (float): Risk-free interest rate.
-        sigma (float): Implied volatility.
         q (float): Continuous dividend yield.
         steps (int): Number of steps in the binomial tree.
         option_type (str): 'calls' or 'puts'.
