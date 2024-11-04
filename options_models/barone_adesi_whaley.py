@@ -96,7 +96,7 @@ class BaroneAdesiWhaley:
 
     @staticmethod
     @njit
-    def calculate_gamma(sigma, S, K, T, r, q=0.0):
+    def calculate_gamma(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the gamma of an option.
         
@@ -107,6 +107,7 @@ class BaroneAdesiWhaley:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
         
         Returns:
             float: The gamma of the option.
@@ -117,7 +118,7 @@ class BaroneAdesiWhaley:
 
     @staticmethod
     @njit
-    def calculate_vega(sigma, S, K, T, r, q=0.0):
+    def calculate_vega(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the vega of an option.
         
@@ -128,12 +129,14 @@ class BaroneAdesiWhaley:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
         
         Returns:
             float: The vega of the option.
         """
         d1 = (log(S / K) + (r - q + 0.5 * sigma ** 2) * T) / (sigma * sqrt(T))
-        return S * exp(-q * T) * sqrt(T) * normal_cdf(d1)
+        pdf_d1 = exp(-0.5 * d1**2) / sqrt(2 * 3.141592653589793)
+        return S * exp(-q * T) * sqrt(T) * pdf_d1
 
     @staticmethod
     @njit

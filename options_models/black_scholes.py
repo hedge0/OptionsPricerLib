@@ -96,7 +96,7 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_gamma(sigma, S, K, T, r, q=0.0):
+    def calculate_gamma(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the gamma of a European option.
         
@@ -107,6 +107,7 @@ class BlackScholes:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
         
         Returns:
             float: The gamma of the option.
@@ -117,7 +118,7 @@ class BlackScholes:
 
     @staticmethod
     @njit
-    def calculate_vega(sigma, S, K, T, r, q=0.0):
+    def calculate_vega(sigma, S, K, T, r, q=0.0, option_type='calls'):
         """
         Calculate the vega of a European option.
         
@@ -128,6 +129,7 @@ class BlackScholes:
             T (float): Time to maturity in years.
             r (float): Risk-free interest rate.
             q (float, optional): Continuous dividend yield.
+            option_type (str, optional): 'calls' or 'puts'. Defaults to 'calls'.
         
         Returns:
             float: The vega of the option.
