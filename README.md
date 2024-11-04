@@ -16,7 +16,7 @@ pip install git+https://github.com/hedge0/OptionsPricerLib.git
 
 ## Usage
 
-After installation, you can import and use any of the models. Here’s a quick example using the **Barone-Adesi Whaley** model.
+After installation, you can import and use any of the models. Here’s a quick example:
 
 ```python
 from options_models.barone_adesi_whaley import BaroneAdesiWhaley
