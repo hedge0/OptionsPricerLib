@@ -20,6 +20,10 @@ After installation, you can import and use any of the models. Here’s a quick e
 
 ```python
 from options_models.barone_adesi_whaley import BaroneAdesiWhaley
+from options_models.black_scholes import BlackScholes
+from options_models.leisen_reimer import LeisenReimer
+from options_models.jarrow_rudd import JarrowRudd
+from options_models.cox_ross_rubinstein import CoxRossRubinstein
 
 # Define parameters
 S = 100        # Current stock price
@@ -30,18 +34,50 @@ sigma = 0.2    # Volatility
 q = 0.01       # Dividend yield
 option_type = 'calls'  # Option type ('calls' or 'puts')
 
-# Calculate option price
+# Barone-Adesi Whaley
 price = BaroneAdesiWhaley.price(sigma, S, K, T, r, q, option_type)
-print(f"Option Price (Barone-Adesi Whaley, {option_type}): {price:.2f}")
-
-# Calculate Greeks
 delta = BaroneAdesiWhaley.calculate_delta(sigma, S, K, T, r, q, option_type)
 gamma = BaroneAdesiWhaley.calculate_gamma(sigma, S, K, T, r, q, option_type)
 vega = BaroneAdesiWhaley.calculate_vega(sigma, S, K, T, r, q, option_type)
 theta = BaroneAdesiWhaley.calculate_theta(sigma, S, K, T, r, q, option_type)
 rho = BaroneAdesiWhaley.calculate_rho(sigma, S, K, T, r, q, option_type)
+print(f"Barone-Adesi Whaley {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
 
-print(f"Delta: {delta:.4f}, Gamma: {gamma:.4f}, Vega: {vega:.4f}, Theta: {theta:.4f}, Rho: {rho:.4f}")
+# Black-Scholes
+price = BlackScholes.price(sigma, S, K, T, r, q, option_type)
+delta = BlackScholes.calculate_delta(sigma, S, K, T, r, q, option_type)
+gamma = BlackScholes.calculate_gamma(sigma, S, K, T, r, q, option_type)
+vega = BlackScholes.calculate_vega(sigma, S, K, T, r, q, option_type)
+theta = BlackScholes.calculate_theta(sigma, S, K, T, r, q, option_type)
+rho = BlackScholes.calculate_rho(sigma, S, K, T, r, q, option_type)
+print(f"Black-Scholes {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+
+# Leisen-Reimer
+price = LeisenReimer.price(sigma, S, K, T, r, q, option_type, steps=100)
+delta = LeisenReimer.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
+gamma = LeisenReimer.calculate_gamma(sigma, S, K, T, r, q, option_type, steps=100)
+vega = LeisenReimer.calculate_vega(sigma, S, K, T, r, q, option_type, steps=100)
+theta = LeisenReimer.calculate_theta(sigma, S, K, T, r, q, option_type, steps=100)
+rho = LeisenReimer.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
+print(f"Leisen-Reimer {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+
+# Jarrow-Rudd
+price = JarrowRudd.price(sigma, S, K, T, r, q, option_type, steps=100)
+delta = JarrowRudd.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
+gamma = JarrowRudd.calculate_gamma(sigma, S, K, T, r, q, option_type, steps=100)
+vega = JarrowRudd.calculate_vega(sigma, S, K, T, r, q, option_type, steps=100)
+theta = JarrowRudd.calculate_theta(sigma, S, K, T, r, q, option_type, steps=100)
+rho = JarrowRudd.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
+print(f"Jarrow-Rudd {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+
+# Cox-Ross-Rubinstein (CRR)
+price = CoxRossRubinstein.price(sigma, S, K, T, r, q, option_type, steps=100)
+delta = CoxRossRubinstein.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
+gamma = CoxRossRubinstein.calculate_gamma(sigma, S, K, T, r, q, option_type, steps=100)
+vega = CoxRossRubinstein.calculate_vega(sigma, S, K, T, r, q, option_type, steps=100)
+theta = CoxRossRubinstein.calculate_theta(sigma, S, K, T, r, q, option_type, steps=100)
+rho = CoxRossRubinstein.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
+print(f"Cox-Ross-Rubinstein {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
 ```
 
 ## Available Models
