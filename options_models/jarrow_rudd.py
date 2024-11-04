@@ -37,10 +37,10 @@ class JarrowRudd:
 
         for i in range(steps - 1, -1, -1):
             for j in range(i + 1):
-                values[j] = discount * (p * values[j + 1] + (1 - p) * values[j])
-                exercise_value = max((prices[j] - K) if option_type == 'calls' else (K - prices[j]), 0)
-                values[j] = max(values[j], exercise_value)
-                prices[j] = prices[j] * d
+                price = S * (u ** j) * (d ** (i - j))
+                exercise_value = max(price - K, 0) if option_type == 'calls' else max(K - price, 0)
+                continuation_value = discount * (p * values[j + 1] + (1 - p) * values[j])
+                values[j] = max(exercise_value, continuation_value)
 
         return values[0]
 
