@@ -43,7 +43,8 @@ gamma = BaroneAdesiWhaley.calculate_gamma(sigma, S, K, T, r, q, option_type)
 vega = BaroneAdesiWhaley.calculate_vega(sigma, S, K, T, r, q, option_type)
 theta = BaroneAdesiWhaley.calculate_theta(sigma, S, K, T, r, q, option_type)
 rho = BaroneAdesiWhaley.calculate_rho(sigma, S, K, T, r, q, option_type)
-print(f"Barone-Adesi Whaley {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+sigma = BaroneAdesiWhaley.calculate_implied_volatility(price, S, K, T, r, q, option_type)
+print(f"Barone-Adesi Whaley {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}, Sigma={sigma:.4f}")
 
 # Black-Scholes
 price = BlackScholes.price(sigma, S, K, T, r, q, option_type)
@@ -52,7 +53,8 @@ gamma = BlackScholes.calculate_gamma(sigma, S, K, T, r, q, option_type)
 vega = BlackScholes.calculate_vega(sigma, S, K, T, r, q, option_type)
 theta = BlackScholes.calculate_theta(sigma, S, K, T, r, q, option_type)
 rho = BlackScholes.calculate_rho(sigma, S, K, T, r, q, option_type)
-print(f"Black-Scholes {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+sigma = BlackScholes.calculate_implied_volatility(price, S, K, T, r, q, option_type)
+print(f"Black-Scholes {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}, Sigma={sigma:.4f}")
 
 # Leisen-Reimer
 price = LeisenReimer.price(sigma, S, K, T, r, q, option_type, steps=100)
@@ -61,7 +63,8 @@ gamma = LeisenReimer.calculate_gamma(sigma, S, K, T, r, q, option_type, steps=10
 vega = LeisenReimer.calculate_vega(sigma, S, K, T, r, q, option_type, steps=100)
 theta = LeisenReimer.calculate_theta(sigma, S, K, T, r, q, option_type, steps=100)
 rho = LeisenReimer.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
-print(f"Leisen-Reimer {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+sigma = LeisenReimer.calculate_implied_volatility(price, S, K, T, r, q, option_type, steps=100)
+print(f"Leisen-Reimer {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}, Sigma={sigma:.4f}")
 
 # Jarrow-Rudd
 price = JarrowRudd.price(sigma, S, K, T, r, q, option_type, steps=100)
@@ -70,7 +73,8 @@ gamma = JarrowRudd.calculate_gamma(sigma, S, K, T, r, q, option_type, steps=100)
 vega = JarrowRudd.calculate_vega(sigma, S, K, T, r, q, option_type, steps=100)
 theta = JarrowRudd.calculate_theta(sigma, S, K, T, r, q, option_type, steps=100)
 rho = JarrowRudd.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
-print(f"Jarrow-Rudd {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+sigma = JarrowRudd.calculate_implied_volatility(price, S, K, T, r, q, option_type, steps=100)
+print(f"Jarrow-Rudd {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}, Sigma={sigma:.4f}")
 
 # Cox-Ross-Rubinstein (CRR)
 price = CoxRossRubinstein.price(sigma, S, K, T, r, q, option_type, steps=100)
@@ -79,7 +83,8 @@ gamma = CoxRossRubinstein.calculate_gamma(sigma, S, K, T, r, q, option_type, ste
 vega = CoxRossRubinstein.calculate_vega(sigma, S, K, T, r, q, option_type, steps=100)
 theta = CoxRossRubinstein.calculate_theta(sigma, S, K, T, r, q, option_type, steps=100)
 rho = CoxRossRubinstein.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
-print(f"Cox-Ross-Rubinstein {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}")
+sigma = CoxRossRubinstein.calculate_implied_volatility(price, S, K, T, r, q, option_type, steps=100)
+print(f"Cox-Ross-Rubinstein {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}, Sigma={sigma:.4f}")
 ```
 
 ## Available Models
