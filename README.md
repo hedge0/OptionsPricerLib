@@ -2,7 +2,7 @@
 
 **OptionsPricerLib** is a Python library for pricing financial options using various european and american models. The library provides options pricing, implied volatility calculation, and the Greeks for options, covering models such as Barone-Adesi Whaley, Black-Scholes, Leisen-Reimer, Jarrow-Rudd, and Cox-Ross-Rubinstein.
 
-You can find the library on PyPI: [OptionsPricerLib on PyPI](https://pypi.org/project/OptionsPricerLib/0.1.0/)
+You can find the library on PyPI: [OptionsPricerLib on PyPI](https://pypi.org/project/OptionsPricerLib/)
 
 ## Installation
 
