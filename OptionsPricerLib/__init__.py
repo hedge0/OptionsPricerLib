@@ -4,4 +4,10 @@ from .cox_ross_rubinstein import CoxRossRubinstein
 from .leisen_reimer import LeisenReimer
 from .jarrow_rudd import JarrowRudd
 
-__all__ = ["BaroneAdesiWhaley", "BlackScholes", "CoxRossRubinstein", "LeisenReimer", "JarrowRudd"]
+__all__ = [
+    "BaroneAdesiWhaley",
+    "BlackScholes",
+    "CoxRossRubinstein",
+    "LeisenReimer",
+    "JarrowRudd",
+]

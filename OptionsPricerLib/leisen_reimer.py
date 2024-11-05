@@ -1,6 +1,6 @@
 from math import exp, log, sqrt
 from numba import njit
-from options_models.utils import peizer_pratt_inverse
+from OptionsPricerLib.utils import peizer_pratt_inverse
 
 class LeisenReimer:
     """

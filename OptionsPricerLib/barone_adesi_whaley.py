@@ -1,6 +1,6 @@
 from math import log, sqrt, exp
 from numba import njit
-from options_models.utils import normal_cdf
+from OptionsPricerLib.utils import normal_cdf
 
 class BaroneAdesiWhaley:
     """
