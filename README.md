@@ -21,11 +21,7 @@ pip install git+https://github.com/hedge0/OptionsPricerLib.git
 After installation, you can import and use any of the models. Here's a quick example:
 
 ```python
-from BaroneAdesiWhaley import BaroneAdesiWhaley
-from BlackScholes import BlackScholes
-from CoxRossRubinstein import CoxRossRubinstein
-from LeisenReimer import LeisenReimer
-from JarrowRudd import JarrowRudd
+from OptionsPricerLib import BaroneAdesiWhaley, BlackScholes, CoxRossRubinstein, LeisenReimer, JarrowRudd
 
 # Define parameters
 S = 100        # Current stock price
