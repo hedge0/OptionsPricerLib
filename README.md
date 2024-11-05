@@ -24,13 +24,13 @@ After installation, you can import and use any of the models. Here's a quick exa
 from OptionsPricerLib import BaroneAdesiWhaley, BlackScholes, CoxRossRubinstein, LeisenReimer, JarrowRudd
 
 # Define parameters
-S = 100        # Current stock price
-K = 100        # Strike price
-T = 1          # Time to maturity (in years)
-r = 0.05       # Risk-free interest rate
-q = 0.01       # Dividend yield
-sigma = 0.2    # Volatility
-option_type = 'calls'  # Option type ('calls' or 'puts')
+S = 100                 # Current stock price
+K = 100                 # Strike price
+T = 1                   # Time to maturity (in years)
+r = 0.05                # Risk-free interest rate
+q = 0.01                # Dividend yield
+sigma = 0.2             # Volatility
+option_type = 'calls'   # Option type ('calls' or 'puts')
 
 # Barone-Adesi Whaley
 price = BaroneAdesiWhaley.price(sigma, S, K, T, r, q, option_type)
@@ -72,7 +72,7 @@ rho = JarrowRudd.calculate_rho(sigma, S, K, T, r, q, option_type, steps=100)
 sigma = JarrowRudd.calculate_implied_volatility(price, S, K, T, r, q, option_type, steps=100)
 print(f"Jarrow-Rudd {option_type}: Price={price:.2f}, Delta={delta:.4f}, Gamma={gamma:.4f}, Vega={vega:.4f}, Theta={theta:.4f}, Rho={rho:.4f}, Sigma={sigma:.4f}")
 
-# Cox-Ross-Rubinstein (CRR)
+# Cox-Ross-Rubinstein
 price = CoxRossRubinstein.price(sigma, S, K, T, r, q, option_type, steps=100)
 delta = CoxRossRubinstein.calculate_delta(sigma, S, K, T, r, q, option_type, steps=100)
 gamma = CoxRossRubinstein.calculate_gamma(sigma, S, K, T, r, q, option_type, steps=100)
@@ -86,10 +86,10 @@ print(f"Cox-Ross-Rubinstein {option_type}: Price={price:.2f}, Delta={delta:.4f},
 ## Available Models
 
 1. **Barone-Adesi Whaley**: American, approximation model.
-2. **Black-Scholes**: European.
+2. **Black-Scholes**: European, analytical model.
 3. **Leisen-Reimer**: American, binomial model.
 4. **Jarrow-Rudd**: American, binomial model.
-5. **Cox-Ross-Rubinstein (CRR)**: American, binomial model.
+5. **Cox-Ross-Rubinstein**: American, binomial model.
 
 ## Running Tests
 
