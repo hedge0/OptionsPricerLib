@@ -2,7 +2,7 @@
 
 **OptionsPricerLib** is a Python library for pricing financial options using various european and american models. The library provides options pricing, implied volatility calculation, and the Greeks for options, covering models such as Barone-Adesi Whaley, Black-Scholes, Leisen-Reimer, Jarrow-Rudd, and Cox-Ross-Rubinstein.
 
-You can find the library on PyPI: [OptionsPricerLib on PyPI](https://pypi.org/project/OptionsPricerLib/)
+You can find the library on [PyPI](https://pypi.org/project/OptionsPricerLib/) and on [GitHub](https://github.com/hedge0/OptionsPricerLib)
 
 ## Installation
 
@@ -18,22 +18,22 @@ pip install git+https://github.com/hedge0/OptionsPricerLib.git
 
 ## Usage
 
-After installation, you can import and use any of the models. Here’s a quick example:
+After installation, you can import and use any of the models. Here's a quick example:
 
 ```python
-from options_models.barone_adesi_whaley import BaroneAdesiWhaley
-from options_models.black_scholes import BlackScholes
-from options_models.leisen_reimer import LeisenReimer
-from options_models.jarrow_rudd import JarrowRudd
-from options_models.cox_ross_rubinstein import CoxRossRubinstein
+from BaroneAdesiWhaley import BaroneAdesiWhaley
+from BlackScholes import BlackScholes
+from CoxRossRubinstein import CoxRossRubinstein
+from LeisenReimer import LeisenReimer
+from JarrowRudd import JarrowRudd
 
 # Define parameters
 S = 100        # Current stock price
 K = 100        # Strike price
 T = 1          # Time to maturity (in years)
 r = 0.05       # Risk-free interest rate
-sigma = 0.2    # Volatility
 q = 0.01       # Dividend yield
+sigma = 0.2    # Volatility
 option_type = 'calls'  # Option type ('calls' or 'puts')
 
 # Barone-Adesi Whaley
@@ -92,7 +92,7 @@ print(f"Cox-Ross-Rubinstein {option_type}: Price={price:.2f}, Delta={delta:.4f},
 1. **Barone-Adesi Whaley**: American, approximation model.
 2. **Black-Scholes**: European.
 3. **Leisen-Reimer**: American, binomial model.
-4. **Jarrow-Rudd**: European, binomial model.
+4. **Jarrow-Rudd**: American, binomial model.
 5. **Cox-Ross-Rubinstein (CRR)**: American, binomial model.
 
 ## Running Tests
